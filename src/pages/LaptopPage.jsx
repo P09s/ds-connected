@@ -245,6 +245,7 @@ export default function LaptopPage() {
 
   useAblyChannel(roomId, (event, data) => {
     if (event === 'slash') handleSlash(data)
+    if (event === 'join') setPhoneConnected(true)
   })
 
   return (

@@ -132,10 +132,13 @@ export default function PhonePage() {
 
   useEffect(() => {
     if (started) {
-      // Small delay then mark connected
-      setTimeout(() => setConnected(true), 800)
+      // Send join event so laptop immediately shows battlefield
+      setTimeout(() => {
+        publish('join', { roomId, t: Date.now() })
+        setConnected(true)
+      }, 800)
     }
-  }, [started])
+  }, [started, publish, roomId])
 
   const playWhoosh = useCallback((intensity) => {
     try {
@@ -296,15 +299,70 @@ export default function PhonePage() {
         </div>
       </div>
 
-      {/* Sword */}
-      <div style={{ flex: 1, display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '20px' }}>
+      {/* Sword — constrained to available vertical space */}
+      <div style={{ flex: 1, display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '12px', overflow: 'hidden', minHeight: 0 }}>
         <WaterParticles triggered={particles} />
         <div style={{
-          width: 'min(40vw, 140px)',
+          height: '100%',
+          maxHeight: 'calc(100vh - 160px)',
+          width: 'auto',
+          display: 'flex', alignItems: 'center', justifyContent: 'center',
           transform: slashing ? 'rotate(15deg) scale(1.04)' : 'rotate(0deg)',
           transition: 'transform 0.15s ease-out',
         }}>
-          <NichirinSword slashing={slashing} />
+          <svg
+            viewBox="0 0 120 600"
+            style={{
+              height: '100%',
+              maxHeight: 'calc(100vh - 160px)',
+              width: 'auto',
+              filter: slashing
+                ? 'drop-shadow(0 0 20px rgba(125,249,255,1)) drop-shadow(0 0 50px rgba(0,200,255,0.8))'
+                : 'drop-shadow(0 0 8px rgba(125,249,255,0.3)) drop-shadow(0 0 20px rgba(0,200,255,0.15))',
+              transition: 'filter 0.15s',
+              animation: slashing ? 'sword-slash 0.3s ease-out' : 'sword-glow 2s ease-in-out infinite',
+            }}
+            xmlns="http://www.w3.org/2000/svg"
+          >
+            <defs>
+              <linearGradient id="blade-grad" x1="0%" y1="0%" x2="100%" y2="0%">
+                <stop offset="0%" stopColor="#b0f0ff" />
+                <stop offset="30%" stopColor="#ffffff" />
+                <stop offset="60%" stopColor="#7DF9FF" />
+                <stop offset="100%" stopColor="#004e99" />
+              </linearGradient>
+              <linearGradient id="guard-grad" x1="0%" y1="0%" x2="0%" y2="100%">
+                <stop offset="0%" stopColor="#c8a86b" />
+                <stop offset="50%" stopColor="#f0d080" />
+                <stop offset="100%" stopColor="#8a6a30" />
+              </linearGradient>
+              <filter id="blade-glow">
+                <feGaussianBlur stdDeviation="2" result="blur" />
+                <feMerge><feMergeNode in="blur"/><feMergeNode in="SourceGraphic"/></feMerge>
+              </filter>
+            </defs>
+            <polygon points="60,10 52,400 68,400" fill="url(#blade-grad)" filter="url(#blade-glow)"/>
+            <line x1="60" y1="10" x2="60" y2="400" stroke="rgba(255,255,255,0.6)" strokeWidth="1"/>
+            <line x1="58" y1="40" x2="55" y2="390" stroke="rgba(125,249,255,0.4)" strokeWidth="0.8"/>
+            <rect x="48" y="395" width="24" height="18" rx="1" fill="#c8a070"/>
+            <rect x="50" y="397" width="20" height="14" rx="1" fill="#e0b87a" opacity="0.7"/>
+            <ellipse cx="60" cy="425" rx="36" ry="12" fill="url(#guard-grad)"/>
+            <ellipse cx="60" cy="425" rx="32" ry="9" fill="none" stroke="#f0d080" strokeWidth="1.5"/>
+            <path d="M 34 425 Q 42 420 50 425 Q 58 430 66 425 Q 74 420 82 425" stroke="#7DF9FF" strokeWidth="1.2" fill="none" opacity="0.7"/>
+            <rect x="53" y="437" width="14" height="120" rx="7" fill="#2a1a0a"/>
+            {Array.from({ length: 10 }, (_, i) => (
+              <line key={i} x1="53" y1={443 + i * 11} x2="67" y2={438 + i * 11} stroke="#4a3020" strokeWidth="3" strokeLinecap="round"/>
+            ))}
+            <rect x="53" y="437" width="14" height="120" rx="7" fill="none" stroke="#3a2510" strokeWidth="1"/>
+            <ellipse cx="60" cy="562" rx="10" ry="8" fill="#c8a070"/>
+            <ellipse cx="60" cy="560" rx="8" ry="5" fill="#e0b87a"/>
+            {slashing && (
+              <>
+                <line x1="55" y1="50" x2="65" y2="350" stroke="rgba(255,255,255,0.8)" strokeWidth="1.5" opacity="0.9"/>
+                <ellipse cx="60" cy="200" rx="8" ry="80" fill="rgba(125,249,255,0.15)"/>
+              </>
+            )}
+          </svg>
         </div>
       </div>
 
