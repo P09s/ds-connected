@@ -128,16 +128,22 @@ export default function PhonePage() {
   const audioCtxRef = useRef(null)
   const decayRef = useRef(null)
 
-  const { publish } = useAblyChannel(started ? roomId : null, () => {})
+  const intervalRef = useRef(null)
+  const { publish } = useAblyChannel(started ? roomId : null, (event) => {
+    // Laptop confirmed it received join — stop pinging
+    if (event === 'ready') {
+      clearInterval(intervalRef.current)
+    }
+  })
 
   useEffect(() => {
-    if (started) {
-      // Send join event so laptop immediately shows battlefield
-      setTimeout(() => {
-        publish('join', { roomId, t: Date.now() })
-        setConnected(true)
-      }, 800)
-    }
+    if (!started) return
+    setConnected(true)
+    // Ping 'join' repeatedly so laptop catches it regardless of load timing
+    const sendJoin = () => publish('join', { roomId, t: Date.now() })
+    setTimeout(sendJoin, 300)
+    intervalRef.current = setInterval(sendJoin, 1500)
+    return () => clearInterval(intervalRef.current)
   }, [started, publish, roomId])
 
   const playWhoosh = useCallback((intensity) => {

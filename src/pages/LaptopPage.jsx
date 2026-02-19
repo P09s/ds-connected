@@ -243,9 +243,12 @@ export default function LaptopPage() {
     }
   }, [enemyDead, triggerShake, triggerEnemyHit, respawnEnemy])
 
-  useAblyChannel(roomId, (event, data) => {
+  const { publish: laptopPublish } = useAblyChannel(roomId, (event, data) => {
     if (event === 'slash') handleSlash(data)
-    if (event === 'join') setPhoneConnected(true)
+    if (event === 'join') {
+      setPhoneConnected(true)
+      laptopPublish('ready', { t: Date.now() })
+    }
   })
 
   return (
