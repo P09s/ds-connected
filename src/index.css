@@ -3,61 +3,85 @@
 
 :root {
   --crimson: #8b0000;
-  --blood: #c0392b;
-  --ember: #e74c3c;
-  --gold: #c9a84c;
-  --gold-light: #f0d080;
-  --ink: #0a0005;
-  --dark: #110008;
+  --blood:   #c0392b;
+  --ember:   #e74c3c;
+  --gold:    #c9a84c;
+  --ink:     #0a0005;
+  --dark:    #110008;
 }
 
 * { margin:0;padding:0;box-sizing:border-box;-webkit-tap-highlight-color:transparent;user-select:none; }
-
 html,body,#root { width:100%;height:100%;overflow:hidden;background:var(--ink);touch-action:none; }
-
 body { font-family:'Cinzel',serif; }
 
+/* Subtle wisteria dot pattern */
 body::before {
   content:'';position:fixed;inset:0;z-index:0;pointer-events:none;
-  background-image:radial-gradient(circle,rgba(120,60,100,0.1) 1px,transparent 1px);
+  background-image:radial-gradient(circle,rgba(120,60,100,.08) 1px,transparent 1px);
   background-size:28px 28px;
 }
 
-@keyframes slash-out { 0%{opacity:1;filter:blur(0)} 60%{opacity:.7} 100%{opacity:0;filter:blur(4px)} }
-@keyframes ripple-expand { 0%{transform:scale(.1);opacity:1} 100%{transform:scale(4.5);opacity:0} }
-@keyframes particle-fly { 0%{opacity:1;transform:translate(0,0) scale(1)} 100%{opacity:0;transform:translate(var(--tx),var(--ty)) scale(0)} }
+/* ── Animations ── */
+@keyframes slash-out       { 0%{opacity:1;filter:blur(0)} 60%{opacity:.7} 100%{opacity:0;filter:blur(4px)} }
+@keyframes ripple-expand   { 0%{transform:scale(.1);opacity:1} 100%{transform:scale(4.5);opacity:0} }
+@keyframes particle-fly    { 0%{opacity:1;transform:translate(0,0) scale(1)} 100%{opacity:0;transform:translate(var(--tx),var(--ty)) scale(0)} }
+@keyframes dmg-float       { 0%{opacity:1;transform:translateY(0) scale(1)} 100%{opacity:0;transform:translateY(-95px) scale(1.5)} }
 @keyframes shake {
   0%,100%{transform:translate(0,0) rotate(0deg)}
   10%{transform:translate(-7px,5px) rotate(-.6deg)}
-  20%{transform:translate(8px,-6px) rotate(.5deg)}
+  20%{transform:translate(9px,-6px) rotate(.5deg)}
   30%{transform:translate(-5px,7px) rotate(-.4deg)}
-  40%{transform:translate(7px,-4px) rotate(.4deg)}
+  40%{transform:translate(8px,-4px) rotate(.4deg)}
   50%{transform:translate(-4px,5px) rotate(-.2deg)}
   70%{transform:translate(-3px,4px) rotate(-.1deg)}
   90%{transform:translate(-2px,2px)}
 }
-@keyframes enemy-hit { 0%{filter:brightness(1) saturate(1)} 15%{filter:brightness(4) saturate(0)} 40%{filter:brightness(2) saturate(.3)} 100%{filter:brightness(1) saturate(1)} }
-@keyframes enemy-float { 0%,100%{transform:translateY(0) rotate(-1.5deg)} 50%{transform:translateY(-14px) rotate(1.5deg)} }
-@keyframes enemy-death { 0%{opacity:1;transform:scale(1) rotate(0)} 25%{transform:scale(1.12) rotate(4deg)} 55%{opacity:.5;transform:scale(.85) rotate(-8deg)} 100%{opacity:0;transform:scale(.6) rotate(-15deg) translateY(60px)} }
-@keyframes dmg-float { 0%{opacity:1;transform:translateY(0) scale(1)} 100%{opacity:0;transform:translateY(-90px) scale(1.5)} }
-@keyframes pulse-ring { 0%{transform:scale(.8);opacity:1} 100%{transform:scale(2.2);opacity:0} }
-@keyframes breathe { 0%,100%{opacity:.25} 50%{opacity:1} }
-@keyframes fade-in { from{opacity:0;transform:translateY(16px)} to{opacity:1;transform:translateY(0)} }
-@keyframes swordGlow {
-  0%,100%{filter:drop-shadow(0 0 8px rgba(180,0,0,.55)) drop-shadow(0 0 22px rgba(100,0,0,.35))}
-  50%{filter:drop-shadow(0 0 20px rgba(220,30,30,.95)) drop-shadow(0 0 50px rgba(180,0,0,.65))}
+/* Enemy hit — bright flash, then settle. NO grayscale. */
+@keyframes enemy-hit {
+  0%{filter:brightness(1) saturate(1)}
+  12%{filter:brightness(3.5) saturate(1.4) contrast(1.2)}
+  40%{filter:brightness(1.6) saturate(1.1)}
+  100%{filter:brightness(1) saturate(1)}
 }
-@keyframes swordSlash { 0%{transform:rotate(-35deg) scale(.93)} 35%{transform:rotate(22deg) scale(1.07)} 65%{transform:rotate(-8deg) scale(1.02)} 100%{transform:rotate(0deg) scale(1)} }
-@keyframes wave { 0%{transform:translateX(0)} 100%{transform:translateX(-50%)} }
-@keyframes ember-rise { 0%{transform:translateY(0) translateX(0) scale(1);opacity:.8} 100%{transform:translateY(-130px) translateX(var(--ex)) scale(0);opacity:0} }
+@keyframes enemy-float {
+  0%,100%{transform:translateY(0) rotate(-1deg)}
+  50%{transform:translateY(-16px) rotate(1deg)}
+}
+@keyframes enemy-death {
+  0%{opacity:1;transform:scale(1) rotate(0)}
+  20%{transform:scale(1.08) rotate(3deg)}
+  55%{opacity:.5;transform:scale(.88) rotate(-7deg)}
+  100%{opacity:0;transform:scale(.65) rotate(-14deg) translateY(60px)}
+}
+@keyframes breathe    { 0%,100%{opacity:.22} 50%{opacity:1} }
+@keyframes fade-in    { from{opacity:0;transform:translateY(18px)} to{opacity:1;transform:translateY(0)} }
+@keyframes swordGlow  {
+  0%,100%{filter:drop-shadow(0 0 8px rgba(180,0,0,.55)) drop-shadow(0 0 22px rgba(100,0,0,.35))}
+  50%{filter:drop-shadow(0 0 22px rgba(220,30,30,.98)) drop-shadow(0 0 52px rgba(180,0,0,.68))}
+}
+@keyframes swordSlash {
+  0%{transform:rotate(-35deg) scale(.92)}
+  35%{transform:rotate(24deg) scale(1.08)}
+  65%{transform:rotate(-8deg) scale(1.02)}
+  100%{transform:rotate(0deg) scale(1)}
+}
+@keyframes ember-rise {
+  0%{transform:translateY(0) translateX(0) scale(1);opacity:.8}
+  100%{transform:translateY(-140px) translateX(var(--ex)) scale(0);opacity:0}
+}
+@keyframes timer-pulse {
+  0%,100%{opacity:1;transform:scale(1)}
+  50%{opacity:.6;transform:scale(.96)}
+}
 
-.slash-el    { animation:slash-out 700ms ease-out forwards; }
-.ripple-el   { animation:ripple-expand 650ms ease-out forwards; }
-.particle-el { animation:particle-fly 520ms ease-out forwards; }
-.dmg-el      { animation:dmg-float 950ms ease-out forwards; }
-.screen-shake { animation:shake 420ms ease-out; }
-.enemy-hit   { animation:enemy-hit 420ms ease-out; }
-.enemy-float { animation:enemy-float 3.2s ease-in-out infinite; }
-.enemy-death { animation:enemy-death 700ms ease-out forwards; }
-.fade-in     { animation:fade-in .55s ease-out forwards; }
-.breathe     { animation:breathe 2.8s ease-in-out infinite; }
+/* ── CSS class bindings ── */
+.slash-el     { animation:slash-out   700ms ease-out forwards; }
+.ripple-el    { animation:ripple-expand 640ms ease-out forwards; }
+.particle-el  { animation:particle-fly 520ms ease-out forwards; }
+.dmg-el       { animation:dmg-float    960ms ease-out forwards; }
+.screen-shake { animation:shake        430ms ease-out; }
+.enemy-hit    { animation:enemy-hit    430ms ease-out; }
+.enemy-float  { animation:enemy-float  3.4s ease-in-out infinite; }
+.enemy-death  { animation:enemy-death  680ms ease-out forwards; }
+.breathe      { animation:breathe      2.8s ease-in-out infinite; }
+.fade-in      { animation:fade-in      .55s ease-out forwards; }
