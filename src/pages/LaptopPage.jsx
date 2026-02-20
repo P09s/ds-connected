@@ -7,42 +7,42 @@ import { usePartySocket } from '../hooks/usePartySocket'
 const BOSSES = [
   {
     id: 'daki',       en: 'Daki',            jp: '堕姫',      rank: 'Upper Moon Six',   rankJp: '上弦の陸',
-    hp: 400,  timer: 90,  image: '/demons/daki.png',
+    hp: 400,  timer: 20,  image: '/demons/daki.png',
     color: '#e83c6e', glow: 'rgba(232,60,110,0.8)',  special: 'daki',
   },
   {
     id: 'gyutaro',    en: 'Gyutaro',         jp: '妓夫太郎',  rank: 'Upper Moon Six',   rankJp: '上弦の陸',
-    hp: 500,  timer: 100, image: '/demons/gyutaro.png',
+    hp: 500,  timer: 25, image: '/demons/gyutaro.png',
     color: '#8b0000', glow: 'rgba(139,0,0,0.9)',
   },
   {
     id: 'gyokko',     en: 'Gyokko',          jp: '玉壺',      rank: 'Upper Moon Five',  rankJp: '上弦の伍',
-    hp: 600,  timer: 110, image: '/demons/gyokko.png',
+    hp: 600,  timer: 30, image: '/demons/gyokko.png',
     color: '#1a9e8a', glow: 'rgba(26,158,138,0.8)',
   },
   {
     id: 'hantengu',   en: 'Hantengu',        jp: '半天狗',    rank: 'Upper Moon Four',  rankJp: '上弦の肆',
-    hp: 700,  timer: 120, image: '/demons/hantengu.png',
+    hp: 700,  timer: 35, image: '/demons/hantengu.png',
     color: '#9b59b6', glow: 'rgba(155,89,182,0.8)',
   },
   {
     id: 'akaza',      en: 'Akaza',           jp: '猗窩座',    rank: 'Upper Moon Three', rankJp: '上弦の参',
-    hp: 850,  timer: 130, image: '/demons/akaza.png',
+    hp: 850,  timer: 40, image: '/demons/akaza.png',
     color: '#e74c3c', glow: 'rgba(231,76,60,0.9)',
   },
   {
     id: 'doma',       en: 'Doma',            jp: '童磨',      rank: 'Upper Moon Two',   rankJp: '上弦の弐',
-    hp: 1000, timer: 150, image: '/demons/doma.png',
+    hp: 1000, timer: 50, image: '/demons/doma.png',
     color: '#c9a84c', glow: 'rgba(201,168,76,0.8)',
   },
   {
     id: 'kokushibo',  en: 'Kokushibo',       jp: '黒死牟',    rank: 'Upper Moon One',   rankJp: '上弦の壱',
-    hp: 1200, timer: 180, image: '/demons/kokushibo.png',
+    hp: 1200, timer: 50, image: '/demons/kokushibo.png',
     color: '#c0392b', glow: 'rgba(192,57,43,0.95)',
   },
   {
     id: 'muzan',      en: 'Muzan Kibutsuji', jp: '鬼舞辻無惨', rank: 'Demon King',        rankJp: '鬼の王',
-    hp: 2000, timer: 240, image: '/demons/muzan.png',
+    hp: 2000, timer: 60, image: '/demons/muzan.png',
     color: '#e74c3c', glow: 'rgba(231,76,60,1.0)', isFinal: true,
   },
 ]
@@ -113,22 +113,41 @@ function spawnDamage(container, x, y, dmg) {
 // ─── TIMER HOOK ────────────────────────────────────────────────────────────────
 function useTimer(seconds, onExpire, active) {
   const [timeLeft, setTimeLeft] = useState(seconds)
-  const intervalRef = useRef(null)
+  const tickRef    = useRef(null)
+  const expireRef  = useRef(onExpire)
+  expireRef.current = onExpire          // always fresh, never stale
 
+  // New boss → reset countdown, stop any running interval
   useEffect(() => {
     setTimeLeft(seconds)
+    clearInterval(tickRef.current)
+    tickRef.current = null
   }, [seconds])
 
+  // Start/stop based on active flag
   useEffect(() => {
-    if (!active) { clearInterval(intervalRef.current); return }
-    intervalRef.current = setInterval(() => {
-      setTimeLeft(t => {
-        if (t <= 1) { clearInterval(intervalRef.current); onExpire?.(); return 0 }
-        return t - 1
+    if (!active) {
+      clearInterval(tickRef.current)
+      tickRef.current = null
+      return
+    }
+    if (tickRef.current) return          // already running
+    tickRef.current = setInterval(() => {
+      setTimeLeft(prev => {
+        if (prev <= 1) {
+          clearInterval(tickRef.current)
+          tickRef.current = null
+          expireRef.current?.()
+          return 0
+        }
+        return prev - 1
       })
     }, 1000)
-    return () => clearInterval(intervalRef.current)
-  }, [active, onExpire])
+    return () => {
+      clearInterval(tickRef.current)
+      tickRef.current = null
+    }
+  }, [active])                          // stable deps — no onExpire in array
 
   return timeLeft
 }
@@ -307,7 +326,10 @@ export default function LaptopPage() {
   const [connected,setConnected]= useState(false)
   const [cuts,     setCuts]     = useState(0)
   const [victory,  setVictory]  = useState(false)
+  const victoryRef = useRef(false)
   const [timedOut, setTimedOut] = useState(false)
+  const timedOutRef = useRef(false)
+  const timerStartedRef = useRef(false)   // ref so slashRef sees it without stale closure
   const [timerActive, setTimerActive] = useState(false)
   const [transition, setTransition]   = useState(null)
 
@@ -325,16 +347,19 @@ export default function LaptopPage() {
   }, [])
 
   const handleTimeout = useCallback(() => {
-    if (deadRef.current || victory) return
+    if (deadRef.current || victoryRef.current) return
     setTimerActive(false)
+    timedOutRef.current = true
     setTimedOut(true)
-  }, [victory])
+  }, [])
 
   const timeLeft = useTimer(boss.timer, handleTimeout, timerActive && !dead && !timedOut)
 
   const retryBoss = useCallback(() => {
     hpRef.current  = boss.hp
     deadRef.current = false
+    timedOutRef.current = false
+    timerStartedRef.current = true
     dakiRef.current = bossIdx === 0 ? false : dakiRef.current
     setHp(boss.hp)
     setDead(false)
@@ -348,18 +373,19 @@ export default function LaptopPage() {
     deadRef.current  = false
     bossIdxRef.current = nextIdx
     hpRef.current    = next.hp
+    timerStartedRef.current = false
     setBossIdx(nextIdx)
     setHp(next.hp)
     setDead(false)
     setTimerActive(false)
     showTransition(next.jp, `${next.rankJp} · ${next.rank}`, 2800)
-    setTimeout(() => setTimerActive(true), 2900)
+    setTimeout(() => { timerStartedRef.current = true; setTimerActive(true) }, 2900)
   }, [showTransition])
 
   const slashRef = useRef(null)
   slashRef.current = (data) => {
-    if (deadRef.current || timedOut || victory) return
-    if (!timerActive) setTimerActive(true) // start timer on first slash
+    if (deadRef.current || timedOutRef.current || victoryRef.current) return
+    if (!timerStartedRef.current) { timerStartedRef.current = true; setTimerActive(true) }
     setConnected(true)
     setCuts(c => c + 1)
 
@@ -394,7 +420,7 @@ export default function LaptopPage() {
       setDead(true)
       setTimerActive(false)
       if (bossIdxRef.current === BOSSES.length - 1) {
-        setTimeout(() => setVictory(true), 2000)
+        setTimeout(() => { victoryRef.current = true; setVictory(true) }, 2000)
       } else {
         const nextIdx = bossIdxRef.current + 1
         showTransition(BOSSES[nextIdx].jp, `${BOSSES[nextIdx].rankJp} · ${BOSSES[nextIdx].rank}`, 2800)
@@ -411,6 +437,7 @@ export default function LaptopPage() {
   const handleRestart = useCallback(() => {
     bossIdxRef.current = 0; hpRef.current = BOSSES[0].hp
     deadRef.current = false; dakiRef.current = false
+    victoryRef.current = false; timedOutRef.current = false; timerStartedRef.current = false
     setBossIdx(0); setHp(BOSSES[0].hp); setDead(false)
     setVictory(false); setTimedOut(false); setTimerActive(false); setCuts(0)
   }, [])
