@@ -1,26 +1,23 @@
-// src/hooks/useAbly.js
+// src/hooks/useAbly.js  — FIXED VERSION
 import { useEffect, useRef, useCallback, useState } from 'react'
 import Ably from 'ably'
 
 const ABLY_KEY = import.meta.env.VITE_ABLY_KEY || 'PASTE_YOUR_ABLY_KEY_HERE'
 
-// One client per browser tab (not a module singleton — avoids same-tab echo issues)
-let ablyClient = null
-
-function getClient() {
-  if (!ablyClient || ablyClient.connection.state === 'failed') {
-    ablyClient = new Ably.Realtime({
-      key: ABLY_KEY,
-      clientId: `user-${Math.random().toString(36).slice(2, 8)}`,
-    })
-  }
-  return ablyClient
+// FIX: No module-level singleton. Create one client per hook instance.
+// This prevents StrictMode double-mount issues and cross-page client reuse.
+function createClient() {
+  return new Ably.Realtime({
+    key: ABLY_KEY,
+    clientId: `user-${Math.random().toString(36).slice(2, 10)}`,
+  })
 }
 
 export function useAblyChannel(roomId, onMessage) {
   const channelRef = useRef(null)
+  const clientRef = useRef(null)
   const onMessageRef = useRef(onMessage)
-  const queueRef = useRef([])          // messages queued before channel ready
+  const queueRef = useRef([])
   const readyRef = useRef(false)
   const [connState, setConnState] = useState('disconnected')
   onMessageRef.current = onMessage
@@ -29,9 +26,11 @@ export function useAblyChannel(roomId, onMessage) {
     if (!roomId) return
 
     let cancelled = false
-    const client = getClient()
 
-    // Track connection state visually
+    // FIX: Always create a fresh client per effect run
+    const client = createClient()
+    clientRef.current = client
+
     const onStateChange = (change) => {
       if (!cancelled) setConnState(change.current)
     }
@@ -48,7 +47,6 @@ export function useAblyChannel(roomId, onMessage) {
 
     channel.subscribe(handler)
 
-    // When channel attaches, flush queued messages
     channel.on('attached', () => {
       if (cancelled) return
       readyRef.current = true
@@ -56,15 +54,16 @@ export function useAblyChannel(roomId, onMessage) {
       q.forEach(({ event, data }) => channel.publish(event, data))
     })
 
-    // If already attached, mark ready immediately
     if (channel.state === 'attached') {
       readyRef.current = true
     }
 
     return () => {
       cancelled = true
-      client.connection.off(onStateChange)
       channel.unsubscribe(handler)
+      // FIX: Close and destroy the client on cleanup so we don't leak connections
+      try { client.close() } catch (_) {}
+      clientRef.current = null
     }
   }, [roomId])
 
@@ -74,9 +73,7 @@ export function useAblyChannel(roomId, onMessage) {
     if (readyRef.current) {
       channel.publish(event, data).catch(console.error)
     } else {
-      // Queue it — will flush when attached
       queueRef.current.push({ event, data })
-      // Also try directly in case state is stale
       channel.publish(event, data).catch(() => {})
     }
   }, [])

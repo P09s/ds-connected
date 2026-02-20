@@ -198,10 +198,13 @@ export default function LaptopPage() {
     }
   }
 
-  const { connState } = useAblyChannel(roomId, (event, data) => {
-    // FIXED: Added optional chaining to prevent crashes if the event fires before render
+  const { connState, publish } = useAblyChannel(roomId, (event, data) => {
     if (event === 'slash') handleSlashRef.current?.(data)
-    if (event === 'join') setSwordConnected(true)
+    if (event === 'join') {
+      setSwordConnected(true)
+      // FIX: Tell phone to stop pinging 'join'
+      publish('ready', { t: Date.now() })
+    }
   })
 
   return (
