@@ -136,11 +136,17 @@ export default function PhonePage() {
   useEffect(() => {
     if (!started) return
     setConnected(true)
-    // Ping 'join' repeatedly so laptop catches it regardless of load timing
+    // Wait for socket to actually open before sending join
+    // connState will update to 'connected' which re-runs publish attempts
     const sendJoin = () => publish('join', { roomId, t: Date.now() })
-    setTimeout(sendJoin, 300)
-    intervalRef.current = setInterval(sendJoin, 1500)
-    return () => clearInterval(intervalRef.current)
+    // Try immediately, then retry every 1s until laptop confirms ready
+    const tryJoin = () => {
+      sendJoin()
+      intervalRef.current = setInterval(sendJoin, 1000)
+    }
+    // Give socket 800ms to open on Android before first attempt
+    const t = setTimeout(tryJoin, 800)
+    return () => { clearTimeout(t); clearInterval(intervalRef.current) }
   }, [started, publish, roomId])
 
   const playWhoosh = useCallback((intensity) => {
@@ -213,10 +219,17 @@ export default function PhonePage() {
 
   const handleStart = async () => {
     if (typeof DeviceMotionEvent?.requestPermission === 'function') {
+      // iOS — must ask permission
       try {
         const res = await DeviceMotionEvent.requestPermission()
         if (res !== 'granted') { alert('Motion permission denied.'); return }
       } catch (_) {}
+    } else {
+      // Android — test if motion events actually fire
+      const testMotion = (e) => {
+        window.removeEventListener('devicemotion', testMotion)
+      }
+      window.addEventListener('devicemotion', testMotion)
     }
     setStarted(true)
     window.addEventListener('devicemotion', handleMotion, true)
