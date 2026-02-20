@@ -1,7 +1,7 @@
 // src/pages/LaptopPage.jsx
 import { useState, useRef, useCallback, useEffect } from 'react'
 import { useParams } from 'react-router-dom'
-import { useAblyChannel } from '../hooks/useAbly'
+import { usePartySocket } from '../hooks/usePartySocket'
 
 function spawnSlash(container, x, y, angle, intensity) {
   const len = Math.min(100 + intensity * 6, 400)
@@ -198,11 +198,10 @@ export default function LaptopPage() {
     }
   }
 
-  const { connState, publish } = useAblyChannel(roomId, (event, data) => {
+  const { connState, publish } = usePartySocket(roomId, (event, data) => {
     if (event === 'slash') handleSlashRef.current?.(data)
     if (event === 'join') {
       setSwordConnected(true)
-      // FIX: Tell phone to stop pinging 'join'
       publish('ready', { t: Date.now() })
     }
   })

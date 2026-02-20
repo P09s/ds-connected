@@ -1,7 +1,7 @@
 // src/pages/PhonePage.jsx
 import { useState, useRef, useCallback, useEffect } from 'react'
 import { useParams } from 'react-router-dom'
-import { useAblyChannel } from '../hooks/useAbly'
+import { usePartySocket } from '../hooks/usePartySocket'
 
 // SVG Nichirin Sword (Tanjiro's water-style)
 function NichirinSword({ slashing }) {
@@ -129,7 +129,7 @@ export default function PhonePage() {
   const decayRef = useRef(null)
 
   const intervalRef = useRef(null)
-  const { publish, connState } = useAblyChannel(started ? roomId : null, (event) => {
+  const { publish, connState } = usePartySocket(started ? roomId : null, (event) => {
     if (event === 'ready') clearInterval(intervalRef.current)
   })
 

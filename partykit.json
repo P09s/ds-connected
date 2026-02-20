@@ -1,0 +1,5 @@
+{
+    "name": "ds-connected",
+    "main": "party/index.ts",
+    "compatibilityDate": "2025-01-01"
+  }

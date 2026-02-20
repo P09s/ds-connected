@@ -1,15 +1,18 @@
 {
   "name": "ds-connected",
   "private": true,
-  "version": "0.2.0",
+  "version": "0.3.0",
   "type": "module",
   "scripts": {
-    "dev": "vite --host",
+    "dev": "concurrently \"partykit dev\" \"vite --host\"",
+    "dev:vite": "vite --host",
+    "dev:party": "partykit dev",
     "build": "vite build",
-    "preview": "vite preview"
+    "preview": "vite preview",
+    "deploy": "partykit deploy"
   },
   "dependencies": {
-    "ably": "^2.3.1",
+    "partysocket": "^1.0.2",
     "react": "^18.3.1",
     "react-dom": "^18.3.1",
     "react-router-dom": "^6.26.0"
@@ -18,6 +21,8 @@
     "@vitejs/plugin-react": "^4.3.1",
     "@tailwindcss/vite": "^4.0.0",
     "tailwindcss": "^4.0.0",
-    "vite": "^6.0.0"
+    "vite": "^6.0.0",
+    "concurrently": "^9.0.0",
+    "partykit": "^0.0.109"
   }
 }
