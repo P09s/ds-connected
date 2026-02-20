@@ -1,140 +1,63 @@
+@import url('https://fonts.googleapis.com/css2?family=Shippori+Mincho:wght@400;700;800&family=Cinzel:wght@400;700;900&display=swap');
 @import "tailwindcss";
 
-* {
-  margin: 0; padding: 0; box-sizing: border-box;
-  -webkit-tap-highlight-color: transparent;
-  user-select: none;
+:root {
+  --crimson: #8b0000;
+  --blood: #c0392b;
+  --ember: #e74c3c;
+  --gold: #c9a84c;
+  --gold-light: #f0d080;
+  --ink: #0a0005;
+  --dark: #110008;
 }
 
-html, body, #root {
-  width: 100%; height: 100%;
-  overflow: hidden;
-  background: #020b18;
-  touch-action: none;
+* { margin:0;padding:0;box-sizing:border-box;-webkit-tap-highlight-color:transparent;user-select:none; }
+
+html,body,#root { width:100%;height:100%;overflow:hidden;background:var(--ink);touch-action:none; }
+
+body { font-family:'Cinzel',serif; }
+
+body::before {
+  content:'';position:fixed;inset:0;z-index:0;pointer-events:none;
+  background-image:radial-gradient(circle,rgba(120,60,100,0.1) 1px,transparent 1px);
+  background-size:28px 28px;
 }
 
-body { font-family: 'Cinzel', serif; }
-
-/* ── Slash fade out ── */
-@keyframes slash-out {
-  0%   { opacity: 1; filter: blur(0px); }
-  70%  { opacity: 0.6; }
-  100% { opacity: 0; filter: blur(3px); }
-}
-
-/* ── Ripple expand ── */
-@keyframes ripple-expand {
-  0%   { transform: scale(0.1); opacity: 1; }
-  100% { transform: scale(4); opacity: 0; }
-}
-
-/* ── Particle drift ── */
-@keyframes particle-fly {
-  0%   { opacity: 1; transform: translate(0,0) scale(1); }
-  100% { opacity: 0; transform: translate(var(--tx), var(--ty)) scale(0.1); }
-}
-
-/* ── Screen shake ── */
+@keyframes slash-out { 0%{opacity:1;filter:blur(0)} 60%{opacity:.7} 100%{opacity:0;filter:blur(4px)} }
+@keyframes ripple-expand { 0%{transform:scale(.1);opacity:1} 100%{transform:scale(4.5);opacity:0} }
+@keyframes particle-fly { 0%{opacity:1;transform:translate(0,0) scale(1)} 100%{opacity:0;transform:translate(var(--tx),var(--ty)) scale(0)} }
 @keyframes shake {
-  0%,100% { transform: translate(0,0) rotate(0deg); }
-  10% { transform: translate(-6px, 4px) rotate(-0.5deg); }
-  20% { transform: translate(7px, -5px) rotate(0.5deg); }
-  30% { transform: translate(-5px, 6px) rotate(-0.3deg); }
-  40% { transform: translate(6px, -4px) rotate(0.4deg); }
-  50% { transform: translate(-4px, 5px) rotate(-0.2deg); }
-  60% { transform: translate(5px, -3px) rotate(0.3deg); }
-  70% { transform: translate(-3px, 4px) rotate(-0.1deg); }
-  80% { transform: translate(4px, -2px) rotate(0.2deg); }
-  90% { transform: translate(-2px, 3px) rotate(0deg); }
+  0%,100%{transform:translate(0,0) rotate(0deg)}
+  10%{transform:translate(-7px,5px) rotate(-.6deg)}
+  20%{transform:translate(8px,-6px) rotate(.5deg)}
+  30%{transform:translate(-5px,7px) rotate(-.4deg)}
+  40%{transform:translate(7px,-4px) rotate(.4deg)}
+  50%{transform:translate(-4px,5px) rotate(-.2deg)}
+  70%{transform:translate(-3px,4px) rotate(-.1deg)}
+  90%{transform:translate(-2px,2px)}
 }
-
-/* ── Enemy hit flash ── */
-@keyframes enemy-hit {
-  0%   { filter: brightness(1) saturate(1); }
-  20%  { filter: brightness(3) saturate(0) invert(0.5); }
-  50%  { filter: brightness(2) saturate(0.2); }
-  100% { filter: brightness(1) saturate(1); }
+@keyframes enemy-hit { 0%{filter:brightness(1) saturate(1)} 15%{filter:brightness(4) saturate(0)} 40%{filter:brightness(2) saturate(.3)} 100%{filter:brightness(1) saturate(1)} }
+@keyframes enemy-float { 0%,100%{transform:translateY(0) rotate(-1.5deg)} 50%{transform:translateY(-14px) rotate(1.5deg)} }
+@keyframes enemy-death { 0%{opacity:1;transform:scale(1) rotate(0)} 25%{transform:scale(1.12) rotate(4deg)} 55%{opacity:.5;transform:scale(.85) rotate(-8deg)} 100%{opacity:0;transform:scale(.6) rotate(-15deg) translateY(60px)} }
+@keyframes dmg-float { 0%{opacity:1;transform:translateY(0) scale(1)} 100%{opacity:0;transform:translateY(-90px) scale(1.5)} }
+@keyframes pulse-ring { 0%{transform:scale(.8);opacity:1} 100%{transform:scale(2.2);opacity:0} }
+@keyframes breathe { 0%,100%{opacity:.25} 50%{opacity:1} }
+@keyframes fade-in { from{opacity:0;transform:translateY(16px)} to{opacity:1;transform:translateY(0)} }
+@keyframes swordGlow {
+  0%,100%{filter:drop-shadow(0 0 8px rgba(180,0,0,.55)) drop-shadow(0 0 22px rgba(100,0,0,.35))}
+  50%{filter:drop-shadow(0 0 20px rgba(220,30,30,.95)) drop-shadow(0 0 50px rgba(180,0,0,.65))}
 }
+@keyframes swordSlash { 0%{transform:rotate(-35deg) scale(.93)} 35%{transform:rotate(22deg) scale(1.07)} 65%{transform:rotate(-8deg) scale(1.02)} 100%{transform:rotate(0deg) scale(1)} }
+@keyframes wave { 0%{transform:translateX(0)} 100%{transform:translateX(-50%)} }
+@keyframes ember-rise { 0%{transform:translateY(0) translateX(0) scale(1);opacity:.8} 100%{transform:translateY(-130px) translateX(var(--ex)) scale(0);opacity:0} }
 
-/* ── Enemy idle float ── */
-@keyframes enemy-float {
-  0%,100% { transform: translateY(0px) rotate(-1deg); }
-  50%      { transform: translateY(-12px) rotate(1deg); }
-}
-
-/* ── Enemy death ── */
-@keyframes enemy-death {
-  0%   { opacity: 1; transform: scale(1) rotate(0deg); clip-path: polygon(0 0,100% 0,100% 100%,0 100%); }
-  30%  { transform: scale(1.1) rotate(3deg); }
-  60%  { opacity: 0.6; transform: scale(0.9) rotate(-5deg); clip-path: polygon(0 0,100% 0,100% 50%,0 50%); }
-  100% { opacity: 0; transform: scale(0.7) rotate(-10deg) translateY(40px); }
-}
-
-/* ── HP bar drain ── */
-@keyframes hp-drain {
-  from { width: var(--old-hp); }
-  to   { width: var(--new-hp); }
-}
-
-/* ── Fade in ── */
-@keyframes fade-in {
-  from { opacity: 0; transform: translateY(12px); }
-  to   { opacity: 1; transform: translateY(0); }
-}
-
-/* ── Float gentle ── */
-@keyframes float {
-  0%,100% { transform: translateY(0); }
-  50%      { transform: translateY(-8px); }
-}
-
-/* ── Water wave bg ── */
-@keyframes wave {
-  0%   { transform: translateX(0); }
-  100% { transform: translateX(-50%); }
-}
-
-/* ── Sword glow pulse ── */
-@keyframes sword-glow {
-  0%,100% { filter: drop-shadow(0 0 8px rgba(125,249,255,0.4)) drop-shadow(0 0 20px rgba(0,200,255,0.2)); }
-  50%      { filter: drop-shadow(0 0 16px rgba(125,249,255,0.9)) drop-shadow(0 0 40px rgba(0,200,255,0.6)); }
-}
-
-/* ── Sword slash swing ── */
-@keyframes sword-slash {
-  0%   { transform: rotate(-30deg) scale(0.95); }
-  30%  { transform: rotate(20deg) scale(1.05); }
-  60%  { transform: rotate(-10deg) scale(1); }
-  100% { transform: rotate(0deg) scale(1); }
-}
-
-/* ── Damage number float up ── */
-@keyframes dmg-float {
-  0%   { opacity: 1; transform: translateY(0) scale(1); }
-  100% { opacity: 0; transform: translateY(-80px) scale(1.4); }
-}
-
-/* ── Connecting pulse ── */
-@keyframes pulse-ring {
-  0%   { transform: scale(0.8); opacity: 1; }
-  100% { transform: scale(2); opacity: 0; }
-}
-
-/* ── Breathe ── */
-@keyframes breathe {
-  0%,100% { opacity: 0.3; }
-  50%      { opacity: 0.8; }
-}
-
-.slash-el    { animation: slash-out 700ms ease-out forwards; }
-.ripple-el   { animation: ripple-expand 600ms ease-out forwards; }
-.particle-el { animation: particle-fly 500ms ease-out forwards; }
-.dmg-el      { animation: dmg-float 900ms ease-out forwards; }
-
-.screen-shake { animation: shake 400ms ease-out; }
-.enemy-hit    { animation: enemy-hit 400ms ease-out; }
-.enemy-float  { animation: enemy-float 3s ease-in-out infinite; }
-.enemy-death  { animation: enemy-death 600ms ease-out forwards; }
-.sword-glow   { animation: sword-glow 2s ease-in-out infinite; }
-.fade-in      { animation: fade-in 0.5s ease-out forwards; }
-.breathe      { animation: breathe 3s ease-in-out infinite; }
+.slash-el    { animation:slash-out 700ms ease-out forwards; }
+.ripple-el   { animation:ripple-expand 650ms ease-out forwards; }
+.particle-el { animation:particle-fly 520ms ease-out forwards; }
+.dmg-el      { animation:dmg-float 950ms ease-out forwards; }
+.screen-shake { animation:shake 420ms ease-out; }
+.enemy-hit   { animation:enemy-hit 420ms ease-out; }
+.enemy-float { animation:enemy-float 3.2s ease-in-out infinite; }
+.enemy-death { animation:enemy-death 700ms ease-out forwards; }
+.fade-in     { animation:fade-in .55s ease-out forwards; }
+.breathe     { animation:breathe 2.8s ease-in-out infinite; }
