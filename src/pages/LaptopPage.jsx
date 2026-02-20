@@ -198,7 +198,7 @@ export default function LaptopPage() {
     }
   }
 
-  useAblyChannel(roomId, (event, data) => {
+  const { connState } = useAblyChannel(roomId, (event, data) => {
     // FIXED: Added optional chaining to prevent crashes if the event fires before render
     if (event === 'slash') handleSlashRef.current?.(data)
     if (event === 'join') setSwordConnected(true)
@@ -218,7 +218,7 @@ export default function LaptopPage() {
           <div style={{ width: '6px', height: '6px', borderRadius: '50%', background: swordConnected ? '#7DF9FF' : '#ffaa00', boxShadow: swordConnected ? '0 0 10px rgba(125,249,255,0.9)' : 'none' }}/>
           <span style={{ fontSize: '0.55rem', letterSpacing: '0.3em', color: 'rgba(125,249,255,0.5)', textTransform: 'uppercase' }}>
             {/* FIXED: Removed backslashes escaping template literals here */}
-            {swordConnected ? 'Sword Connected' : `Waiting · Room ${roomId}`}
+            {swordConnected ? 'Sword Connected' : `Waiting · Room ${roomId} · ${connState}`}
           </span>
         </div>
         <div style={{ fontFamily: "'Shippori Mincho', serif", fontSize: '1rem', fontWeight: 700, color: 'rgba(125,249,255,0.3)', letterSpacing: '0.3em' }}>水の呼吸</div>

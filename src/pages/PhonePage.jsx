@@ -129,11 +129,8 @@ export default function PhonePage() {
   const decayRef = useRef(null)
 
   const intervalRef = useRef(null)
-  const { publish } = useAblyChannel(started ? roomId : null, (event) => {
-    // Laptop confirmed it received join — stop pinging
-    if (event === 'ready') {
-      clearInterval(intervalRef.current)
-    }
+  const { publish, connState } = useAblyChannel(started ? roomId : null, (event) => {
+    if (event === 'ready') clearInterval(intervalRef.current)
   })
 
   useEffect(() => {
@@ -297,7 +294,7 @@ export default function PhonePage() {
             animation: connected ? 'none' : 'pulse-ring 1s ease-out infinite',
           }}/>
           <span style={{ fontSize: '0.55rem', letterSpacing: '0.3em', color: 'rgba(125,249,255,0.5)' }}>
-            {connected ? `ROOM ${roomId}` : 'CONNECTING...'}
+            {connected ? `ROOM ${roomId} · ${connState}` : `CONNECTING · ${connState}`}
           </span>
         </div>
         <div style={{ fontSize: '0.5rem', letterSpacing: '0.25em', color: 'rgba(125,249,255,0.25)' }}>
